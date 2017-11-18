@@ -15,29 +15,12 @@ spark = SparkSession \
 
 
 def remove_punctuation(partition):
+    punctuation = [',', '.', ';', ':', '?', '!', '"', '-', '\'']
     for word in partition:
-        if word[0] == ',' \
-                or word[0] == '.' \
-                or word[0] == ';' \
-                or word[0] == ':' \
-                or word[0] == '?' \
-                or word[0] == '!' \
-                or word[0] == '"' \
-                or word[0] == '-' \
-                or word[0] == '\'':
+        if any(x == word[0] for x in punctuation):
             yield word[1:]
-
-        elif word[len(word) - 1] == '.' \
-                or word[len(word) - 1] == ',' \
-                or word[len(word) - 1] == ';' \
-                or word[len(word) - 1] == ':' \
-                or word[len(word) - 1] == '?' \
-                or word[len(word) - 1] == '!' \
-                or word[len(word) - 1] == '"' \
-                or word[len(word) - 1] == '-' \
-                or word[len(word) - 1] == '\'':
+        elif any(x == word[-1] for x in punctuation):
             yield word[:-1]
-
         else:
             yield word
 
@@ -50,7 +33,8 @@ def load_dataframe(file_name):
         .filter(lambda word: word.count("@") == 0) \
         .filter(lambda word: word.count("//") == 0) \
         .filter(lambda word: word.count("---") == 0) \
-        .map(lambda word: word.lower())
+        .map(lambda word: word.lower()) \
+        .persist()
 
     word_count = words.count()
 
@@ -80,3 +64,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    input("ctrl c to stop")
