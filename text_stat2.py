@@ -10,12 +10,16 @@ sc = SparkContext()
 def remove_punctuation(partition):
     punctuation = [',', '.', ';', ':', '?', '!', '"', '-', '\'']
     for word in partition:
-        if any(x == word[0] for x in punctuation):
-            yield word[1:]
-        elif any(x == word[-1] for x in punctuation):
-            yield word[:-1]
-        else:
-            yield word
+        word_no_punctuate = word
+        while any(x == word_no_punctuate[0] for x in punctuation) or any(x == word_no_punctuate[-1] for x in punctuation):
+            if any(x == word_no_punctuate[0] for x in punctuation):
+                word_no_punctuate = word_no_punctuate[1:]
+            elif any(x == word_no_punctuate[-1] for x in punctuation):
+                word_no_punctuate = word_no_punctuate[:-1]
+            if len(word_no_punctuate) == 0:
+                break
+        if len(word_no_punctuate) > 0:
+            yield word_no_punctuate
 
 
 def load_dataframe(file_name, spark, cores):
@@ -26,7 +30,6 @@ def load_dataframe(file_name, spark, cores):
                                      .filter(lambda word: word is not None and len(word) > 0)
                                      .filter(lambda word: word.count("@") == 0)
                                      .filter(lambda word: word.count("://") == 0)
-                                     .filter(lambda word: word.count("---") == 0)
                                      .map(lambda word: word.lower())
                                      .map(lambda word: Row(text_word=word)))
 
@@ -36,7 +39,6 @@ def load_dataframe(file_name, spark, cores):
                                  .filter(lambda word: word is not None and len(word) > 0)
                                  .filter(lambda word: word.count("@") == 0)
                                  .filter(lambda word: word.count("://") == 0)
-                                 .filter(lambda word: word.count("---") == 0)
                                  .map(lambda word: word.lower())
                                  .map(lambda word: Row(text_word=word)))
 
